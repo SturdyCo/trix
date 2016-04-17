@@ -1,15 +1,14 @@
 Trix.registerElement "trix-inspector",
   defaultCSS: """
     %t {
-      position: fixed;
+      position: absolute;
       background: #fff;
       border: 1px solid #444;
       border-radius: 5px;
+      margin-left: 5px;
       padding: 10px;
       font-family: sans-serif;
       font-size: 12px;
-      overflow: auto;
-      word-wrap: break-word;
     }
 
     %t details {
@@ -23,35 +22,6 @@ Trix.registerElement "trix-inspector",
     %t details .panel {
       padding: 10px;
     }
-
-    %t .performance .metrics {
-      margin: 0 0 5px 5px;
-    }
-
-    %t .selection .characters {
-      margin-top: 10px;
-    }
-
-    %t .selection .character {
-      display: inline-block;
-      font-size: 8px;
-      font-family: courier, monospace;
-      line-height: 10px;
-      vertical-align: middle;
-      text-align: center;
-      width: 10px;
-      height: 10px;
-      margin: 0 1px 1px 0;
-      border: 1px solid #333;
-      border-radius: 1px;
-      background: #676666;
-      color: #fff;
-    }
-
-    %t .selection .character.selected {
-      background: yellow;
-      color: #000;
-    }
   """
 
   attachedCallback: ->
@@ -62,13 +32,8 @@ Trix.registerElement "trix-inspector",
       view.render()
       @appendChild(view.element)
 
+    @editorElement.addEventListener("trix-selectionchange", => @reposition())
     @reposition()
-
-    @resizeHandler = @reposition.bind(this)
-    addEventListener("resize", @resizeHandler)
-
-  detachedCallback: ->
-    removeEventListener("resize", @resizeHandler)
 
   createViews: ->
     views = for View in Trix.Inspector.views
@@ -78,9 +43,12 @@ Trix.registerElement "trix-inspector",
       a.title.toLowerCase() > b.title.toLowerCase()
 
   reposition: ->
-    {top, right} = @editorElement.getBoundingClientRect()
+    position = @editorElement.editor.getPosition() ? 0
+    selectionRect = try @editorElement.editor.getClientRectAtPosition(position)
+    elementRect = @editorElement.getBoundingClientRect()
+
+    top = selectionRect?.top ? elementRect.top
+    left = elementRect.left + elementRect.width
 
     @style.top = "#{top}px"
-    @style.left = "#{right + 10}px"
-    @style.maxWidth = "#{window.innerWidth - right - 40}px"
-    @style.maxHeight = "#{window.innerHeight - top - 30}px"
+    @style.left = "#{left}px"

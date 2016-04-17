@@ -16,6 +16,3 @@ Trix.Inspector.registerView class extends Trix.Inspector.View
     @renderCount = 0
     @syncCount = 0
     super
-
-  getTitle: ->
-    "#{@title} (#{@renderCount})"
